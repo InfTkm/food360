@@ -1,7 +1,9 @@
 import 'dart:html';
+import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 
 void main() {
   runApp(MyApp());
@@ -26,17 +28,30 @@ class MainForm extends StatefulWidget {
 
 class _MainFormState extends State<MainForm> {
   final imageURLController = TextEditingController();
-  final imageURLFocusNode = FocusNode();
-
+  var cansubmit = false;
+  // final imageURLFocusNode = FocusNode();
+  var results = [];
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    imageURLFocusNode.addListener(() {
-      if (!imageURLFocusNode.hasFocus) {
-        setState(() {});
-      }
-    });
+    // imageURLFocusNode.addListener(() {
+    //   if (!imageURLFocusNode.hasFocus) {
+    //     setState(() {});
+    //   }
+    // });
+  }
+
+  void submit() async {
+    var url = Uri.http('8c26d2a9fc14.ngrok.io', '/api/infer');
+
+    var res = await http.post(url,
+        body: json.encode({'src': imageURLController.text}),
+        encoding: Encoding.getByName('utf-8'),
+        headers: {"Content-Type": "application/json"});
+    results = res.body.split(';');
+
+    setState(() {});
   }
 
   @override
@@ -49,28 +64,50 @@ class _MainFormState extends State<MainForm> {
         child: Form(
           child: Column(
             children: [
-              imageURLController.text.isEmpty
-                  ? Text('Image Placeholder')
-                  : FittedBox(child: Image.network(imageURLController.text)),
+              Container(
+                child:
+                (imageURLController.text.isEmpty ||
+                        !imageURLController.text.startsWith('http'))
+                    ? Text('Image Placeholder')
+                    : Image.network(imageURLController.text),
+                  height: MediaQuery.of(context).size.height * 0.5,
+                  width: MediaQuery.of(context).size.width * 0.8,
+              ),
               TextFormField(
                 decoration: const InputDecoration(
                   hintText: 'Enter image src URL',
                 ),
+                onChanged: (text) {
+                  setState(() {});
+                },
                 controller: imageURLController,
                 keyboardType: TextInputType.url,
                 textInputAction: TextInputAction.done,
-                focusNode: imageURLFocusNode,
+                // focusNode: imageURLFocusNode,
               ),
-              Container(child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                ElevatedButton(onPressed: () {setState(() {});},
-                child: Text("Preview")),
-                ElevatedButton(onPressed: () {setState(() {});},
-                child: Text("Submit")),
-              ],),
-              margin: EdgeInsets.only(top: 10),)
-              
+              Container(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    ElevatedButton(
+                        onPressed: () {
+                          setState(() {});
+                          // if (imageURLController.text.startsWith('http')) {
+
+                          // }
+                        },
+                        child: Text("Preview")),
+                    ElevatedButton(
+                        onPressed: this.submit, child: Text("Submit"))
+                  ],
+                ),
+                margin: EdgeInsets.only(top: 10),
+              ),
+              Column(
+                children: results.map((r) {
+                  return Text(r);
+                }).toList(),
+              )
             ],
           ),
         ));

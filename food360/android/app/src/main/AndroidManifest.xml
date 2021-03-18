@@ -1,7 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.food360">
+    package="com.example.food3602">
    <application
-        android:label="food360"
+        android:label="food3602"
         android:icon="@mipmap/ic_launcher">
         <activity
             android:name=".MainActivity"
